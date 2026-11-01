@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { createRoot } from "react-dom/client";
@@ -190,7 +191,7 @@ function Viewer({
         onClick={requestClose}
         aria-label="Close project"
       >
-        Ã—
+        ×
       </button>
       <div className="modal-counter" aria-live="polite">
         {index + 1} / {projects.length}
@@ -211,13 +212,13 @@ function Viewer({
           </p>
           <div className="modal-buttons">
             <button onClick={() => navigate(-1)} aria-label="Previous project">
-              â† Previous
+              ← Previous
             </button>
             <button onClick={() => setPlaying(!playing)} aria-pressed={playing}>
               {playing ? "Pause" : "Play"}
             </button>
             <button onClick={() => navigate(1)} aria-label="Next project">
-              Next â†’
+              Next →
             </button>
           </div>
         </div>
@@ -242,7 +243,7 @@ function Gallery({
   return (
     <>
       <section className="grid-section" id="work">
-        <div className="eyebrow">03 / The archive Â· visual experiments</div>
+        <div className="eyebrow">03 / The archive · visual experiments</div>
         <div className="gallery-top">
           <div>
             <h2 className="section-heading display">
@@ -414,6 +415,72 @@ function CreativeOrbit() {
     </div>
   );
 }
+function AboutCard({ reduced }: { reduced: boolean }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const card = ref.current!;
+    if (reduced) return;
+    const context = gsap.context(() => {
+      gsap.from(".about-card-copy", {
+        opacity: 0,
+        x: -28,
+        duration: 0.6,
+        ease: "power3.out",
+        scrollTrigger: { trigger: card, start: "top 75%" },
+      });
+      gsap.from(".about-card-portrait", {
+        opacity: 0,
+        y: 30,
+        duration: 0.7,
+        delay: 0.15,
+        ease: "power3.out",
+        scrollTrigger: { trigger: card, start: "top 75%" },
+      });
+      gsap.from(".about-card-visual > :not(.about-card-portrait)", {
+        opacity: 0,
+        scale: 0.9,
+        stagger: 0.1,
+        duration: 0.45,
+        delay: 0.35,
+        scrollTrigger: { trigger: card, start: "top 75%" },
+      });
+    }, card);
+    return () => context.revert();
+  }, [reduced]);
+  const move = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType !== "mouse" || reduced) return;
+    const card = event.currentTarget, bounds = card.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+    card.style.setProperty("--about-x", `${x * 100}%`);
+    card.style.setProperty("--about-y", `${y * 100}%`);
+    card.style.setProperty("--about-rx", `${-y * 3}deg`);
+    card.style.setProperty("--about-ry", `${x * 3}deg`);
+  };
+  return (
+    <section className="about" id="about" ref={ref} aria-label="More Than Pixels">
+      <div className="about-card" onPointerMove={move} onPointerLeave={(event) => {
+        event.currentTarget.style.removeProperty("--about-x");
+        event.currentTarget.style.removeProperty("--about-y");
+        event.currentTarget.style.removeProperty("--about-rx");
+        event.currentTarget.style.removeProperty("--about-ry");
+      }}>
+        <div className="about-card-copy">
+          <div className="eyebrow">04 / Creative philosophy</div>
+          <h2 className="about-head display">MORE THAN <em>PIXELS.</em></h2>
+          <p>Not just frames on a screen. Ideas brought to life through design, movement, and visual storytelling.</p>
+          <a className="about-work-link" href="#work">Explore the work <span>↗</span></a>
+        </div>
+        <div className="about-card-visual">
+          <div className="about-halo" />
+          <CreativeOrbit />
+          <svg className="about-stroke" viewBox="0 0 620 650" aria-hidden="true"><path d="M50 535C-10 432 76 279 132 213S305 15 435 102 611 321 535 488" /><path d="M83 580C31 473 87 312 173 210S351 45 481 167" /></svg>
+          <img className="about-card-portrait" src="/vector_portrait_cutout_v6.png" alt="Arun, motion designer" />
+        </div>
+      </div>
+    </section>
+  );
+}
 function App() {
   const reduced = useReducedMotion();
   const [paused, setPaused] = useState(false);
@@ -446,7 +513,7 @@ function App() {
             </a>
           ))}
           <a className="pill" href="#work" onClick={() => setMenu(false)}>
-            Explore projects â†—
+            Explore projects ↗
           </a>
         </nav>
         <button
@@ -456,7 +523,7 @@ function App() {
           aria-expanded={menu}
           onClick={() => setMenu(!menu)}
         >
-          â˜°
+          ☰
         </button>
       </header>
       <main>
@@ -486,83 +553,32 @@ function App() {
         <div className="break" aria-hidden="true">
           <div className="marquee">
             {[0, 1].map((i) => (
-              <span key={i}>DONâ€™T THINK STATIC â˜… MAKE IT MOVE â˜…</span>
+              <span key={i}>DON’T THINK STATIC ★ MAKE IT MOVE ★</span>
             ))}
           </div>
         </div>
-        <section className="about" id="about">
-          <div>
-            <div className="eyebrow">04 / The mind behind the motion</div>
-            <h2 className="about-head display">
-              MORE
-              <br />
-              THAN
-              <br />
-              <em>PIXELS.</em>
-            </h2>
-            <div className="about-photo-wrap">
-              <CreativeOrbit />
-              <svg
-                className="about-photo"
-                viewBox="0 0 367 737"
-                role="img"
-                aria-label="Arun, motion designer"
-                width="367"
-                height="737"
-              >
-                <image
-                  href="/portrait.png"
-                  x="-87.625"
-                  y="6.489583333333334"
-                  width="546.2666666666667"
-                  height="725.5104166666666"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="about-copy">
-            <h3 className="display">
-              MAKE
-              <br />
-              PEOPLE
-              <br />
-              FEEL.
-            </h3>
-            <p>
-              Iâ€™m Arun, a graphic and motion designer exploring animation,
-              visual storytelling, and ideas in movement.
-            </p>
-            <a
-              className="pill"
-              href="/resume.pdf"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View rÃ©sumÃ© â†—
-            </a>
-          </div>
-        </section>
+        <AboutCard reduced={reduced} />
         <section className="contact" id="contact">
           <div className="eyebrow">
             05 / End of the scroll, start of something
           </div>
           <h2 className="display">
-            LETâ€™S
+            LET’S
             <br />
             CREATE<span style={{ color: "var(--coral)" }}>.</span>
           </h2>
-          <p>For collaboration and contact details, see my rÃ©sumÃ©.</p>
+          <p>For collaboration and contact details, see my résumé.</p>
           <a
             className="pill"
             href="/resume.pdf"
             target="_blank"
             rel="noreferrer"
           >
-            Contact details â†—
+            Contact details ↗
           </a>
           <footer className="footer">
-            <span>Â© 2026 Arun Â· Motion design</span>
-            <a href="#top">Back to top â†‘</a>
+            <span>© 2026 Arun · Motion design</span>
+            <a href="#top">Back to top ↑</a>
           </footer>
         </section>
       </main>
